@@ -1,3 +1,4 @@
+from django.db.models import Q
 from django.http import Http404
 from drf_spectacular.utils import extend_schema
 from rest_framework import status
@@ -64,3 +65,11 @@ class AdDetailView(APIView):
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
+class AdSearchView(APIView, StandardResultsSetPagination):
+
+    def get(self, request):
+        q = request.GET.get("q")
+        ads = Ad.objects.filter(Q(title__icontains=q))
+        result = self.paginate_queryset(ads, request)
+        serializer = AdSerializer(result, many=True)
+        return self.get_paginated_response(serializer.data)
